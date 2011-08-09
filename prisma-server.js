@@ -1,5 +1,4 @@
 
-
 /**
  * Module dependencies.
  */
@@ -13,88 +12,87 @@ var app = module.exports = express.createServer();
 // Configuration
 
 app.configure(function(){
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(app.router);
-  app.use(express.static(__dirname + '/public'));
+	app.set('views', __dirname + '/views');
+	app.set('view engine', 'jade');
+	app.use(express.bodyParser());
+	app.use(express.methodOverride());
+	app.use(app.router);
+	app.use(express.static(__dirname + '/public'));
 });
 
-app.configure('development', function(){
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
-});
 
+/*app.configure('development', function(){
+	app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+});
+*/
 app.configure('production', function(){
-  app.use(express.errorHandler()); 
+	app.use(express.errorHandler()); 
 });
+
+
 
 // Routes
 
 app.get('/', function(req, res){
-  console.log('rendering...');
-  res.render('prisma', {
-    title: 'Express'
-  });
+	res.render('prisma', {
+		title: 'Express'
+	});
 });
 
-// socket.io
 
 app.listen(3000);
 
 var socket = io.listen(app);
-
-mongoose.connect('mongodb://localhost/prisma_db');
-var Schema = mongoose.Schema,
-    ObjectId = Schema.ObjectId;
-
-var Color_Histogram = new Schema({
-    color_histogram  :  { type: String}
+socket.configure('production', function(){
+  socket.set('log level', 1);
 });
 
-
-mongoose.model('color_histogram',Color_Histogram);
-
-var Color_Histogram = mongoose.model('color_histogram');
-
-/*var color = new Color_Histogram();
-color.color_histogram = "{red:50,blue:25,green:25}";
-color.save(function(err){});
-*/
-
-var max_id='0'
-
-Color_Histogram.find({}).sort(['_id'],-1).limit(1).run(function(err,doc){
-	//get the max id for the documents in the collection
-	// this will get the max id once the server starts
-	console.log(doc[0]._id);
-	max_id=doc[0]._id;
-});
 
 socket.sockets.on('connection',function(client){
-	console.log('connection!');
+
+
+	var max_id = '0';
+
+	mongoose.connect('mongodb://localhost/prisma_db');
+	var Schema = mongoose.Schema,
+    		ObjectId = Schema.ObjectId;
+
+	var Color_Histogram = new Schema({
+    		color_histogram  :  { type: String}
+	});
+
+	mongoose.model('color_histogram',Color_Histogram);
+	var Color_Histogram = mongoose.model('color_histogram');
+
+
+	Color_Histogram.find({}).sort(['_id'],-1).limit(1).run(function(err,doc){
+        	max_id = doc[0]._id;
+	});
+
 	client.on('message',function(event){ 
-		console.log('Received message from client!',event);
-		console.log(max_id);
-//		Color_Histogram.find({'_id':{$lt:max_id}}).sort(['_id'],1).limit(1).run(function(err,doc){
 		Color_Histogram.find({'_id':{$gt:max_id}}).sort(['_id'],1).limit(1).run(function(err,doc){
-			docs = doc;
-//  			var json = eval('('+'{red:20,blue:20,green:20}'+')');
-			if(doc[0]!=undefined)
-			{
+			if(doc[0]!=undefined){
 				var json = eval('('+doc[0]['color_histogram']+')');
-				console.log(doc[0]['color_histogram']);
-				max_id = doc[0]['_id'];
-				client.emit('colorrow',{"color_histogram":json})
+				client.emit('colorrow',{"color_histogram":json,'_id':doc[0]['_id']});
 			}
 			else{
-				client.emit('nothing','no new data');
+				client.emit('nothing',{'_id':max_id});
 			}
-
-			
 		});
+	});
+	client.on('getlatest',function(clientdata){
+		client_id = clientdata['_id'];
+		Color_Histogram.find({'_id':{$gt:client_id}}).sort(['_id'],1).limit(1).run(function(err,doc){
+			if(doc!=undefined && doc[0]!=undefined){
+				var json = eval('('+doc[0]['color_histogram']+')');
+				client.emit('colorrow',{'color_histogram':json,'_id':doc[0]['_id']});
+			}
+			else{
+				console.log(clientdata['_id']);
+				client.emit('nothing',clientdata);
+			}
+		});
+		
 	});
 });
 
-console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
-console.log(max_id);

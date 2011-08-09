@@ -20,25 +20,20 @@ head
 		});
 		socket.send("some message");
 		
-		socket.on('nothing',function(msg){
-			socket.send('some msg');
+		socket.on('nothing',function(data){
+			socket.emit('getlatest',data);
 		});
 
-		socket.on('colorrow',function(color){
-			color = color['color_histogram'];
-			console.log(color);
+		socket.on('colorrow',function(data){
+			color = data['color_histogram'];
 			var interact = document.getElementById('inner')
 			var newrow = document.createElement('div')
 			newrow.className='row';
 			var total = 100
 			var cell = 0
 			$.each(color, function(key,value){
-				console.log('running jquery');
-				console.log(key);
-				console.log(value);
 				var cirnum = 0
 				while(cirnum<value){
-					console.log(cirnum);
 					var newcircle = document.createElement('div');
 					newcircle.className = 'circle';
 					newcircle.style.backgroundColor = key;
@@ -46,11 +41,9 @@ head
 					cirnum++;
 				}
 				cell += value;
-				console.log(newrow);
 			})
 			interact.appendChild(newrow);
-			console.log(interact);
-			socket.send('message');
+			socket.emit('getlatest', data);
 		});		
 body
 	#outer

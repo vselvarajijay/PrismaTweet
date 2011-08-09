@@ -64,7 +64,7 @@ color.save(function(err){});
 
 var max_id='0'
 
-Color_Histogram.find({}).run(function(err,doc){
+Color_Histogram.find({}).sort(['_id'],-1).limit(1).run(function(err,doc){
 	//get the max id for the documents in the collection
 	// this will get the max id once the server starts
 	console.log(doc[0]._id);
@@ -77,12 +77,21 @@ socket.sockets.on('connection',function(client){
 		console.log('Received message from client!',event);
 		console.log(max_id);
 //		Color_Histogram.find({'_id':{$lt:max_id}}).sort(['_id'],1).limit(1).run(function(err,doc){
-		Color_Histogram.find().sort(['_id'],-1).limit(1).run(function(err,doc){
+		Color_Histogram.find({'_id':{$gt:max_id}}).sort(['_id'],1).limit(1).run(function(err,doc){
 			docs = doc;
 //  			var json = eval('('+'{red:20,blue:20,green:20}'+')');
-			var json = eval('('+doc[0]['color_histogram']+')');
-			console.log(doc[0]['color_histogram']);
-			client.emit('colorrow',{"color_histogram":json})
+			if(doc[0]!=undefined)
+			{
+				var json = eval('('+doc[0]['color_histogram']+')');
+				console.log(doc[0]['color_histogram']);
+				max_id = doc[0]['_id'];
+				client.emit('colorrow',{"color_histogram":json})
+			}
+			else{
+				client.emit('nothing','no new data');
+			}
+
+			
 		});
 	});
 });

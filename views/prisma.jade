@@ -19,6 +19,10 @@ head
 			console.log('The client has disconnected!');
 		});
 		socket.send("some message");
+		
+		socket.on('nothing',function(msg){
+			socket.send('some msg');
+		});
 
 		socket.on('colorrow',function(color){
 			color = color['color_histogram'];

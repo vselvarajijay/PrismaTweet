@@ -1,0 +1,36 @@
+body {
+    background: black;
+}
+
+#outer {
+    width: 100%;
+    margin: auto;
+}
+
+#side {
+    width: 100px;
+    float: left;
+    margin-left: 5%;
+}
+
+#inner {
+    width: 1000px;
+    height: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+}
+
+.row {
+    height: 8px;
+    width: 1000px;
+    margin: auto;
+    vertical-align: bottom;
+}
+
+.circle {
+    width: 8px;
+    height: 8px;
+    float: left;
+    border-radius: 4px;
+}

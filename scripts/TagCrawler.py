@@ -111,7 +111,7 @@ class TagCrawler(object):
 		if total!=0:
 			for tag in self.tags:
 				self.colorHistogram[tag] = int((float(self.colorHistogram[tag])/float(total))*100)
-			self.printHistogram()
+	#		self.printHistogram()
 			jsonStr = json.dumps(self.colorHistogram)
 			self.color_histogram.insert({"color_histogram":jsonStr})
 		
@@ -136,4 +136,9 @@ class TagCrawler(object):
 
     def submit(self, data):
         print data
+
+
+if __name__ == "__main__":
+	crawler = TagCrawler(0,10);
+	crawler.tagLoop();
 

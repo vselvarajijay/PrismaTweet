@@ -88,7 +88,6 @@ socket.sockets.on('connection',function(client){
 				client.emit('colorrow',{'color_histogram':json,'_id':doc[0]['_id']});
 			}
 			else{
-				console.log(clientdata['_id']);
 				client.emit('nothing',clientdata);
 			}
 		});
